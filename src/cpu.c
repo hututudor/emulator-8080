@@ -33,11 +33,19 @@ void cpu_handle_p_flag(cpu_state *state, uint16_t res) {
 }
 
 void cpu_handle_c_flag(cpu_state *state, uint16_t res) {
-  state->flags.ac = res > 0xFF;
+  state->flags.c = res > 0xFF;
 }
 
 void cpu_handle_ac_flag(cpu_state *state, uint16_t res) {
   state->flags.ac = res > 0x09;
+}
+
+void cpu_handle_all_flags(cpu_state *state, uint16_t res) {
+  cpu_handle_z_flag(state, res);
+  cpu_handle_s_flag(state, res);
+  cpu_handle_p_flag(state, res);
+  cpu_handle_c_flag(state, res);
+  cpu_handle_ac_flag(state, res);
 }
 
 cpu_state cpu_init(char *file_data, uint32_t file_size) {
@@ -610,6 +618,262 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       cpu_execute_mov_r_r(state, &state->a, &state->a);
       break;
 
+    case ADD_B:
+      cpu_execute_add_r(state, state->b);
+      break;
+
+    case ADD_C:
+      cpu_execute_add_r(state, state->c);
+      break;
+
+    case ADD_D:
+      cpu_execute_add_r(state, state->d);
+      break;
+
+    case ADD_E:
+      cpu_execute_add_r(state, state->e);
+      break;
+
+    case ADD_H:
+      cpu_execute_add_r(state, state->h);
+      break;
+
+    case ADD_L:
+      cpu_execute_add_r(state, state->l);
+      break;
+
+    case ADD_M:
+      cpu_execute_add_m(state);
+      break;
+
+    case ADD_A:
+      cpu_execute_add_r(state, state->a);
+      break;
+
+    case ADC_B:
+      cpu_execute_adc_r(state, state->b);
+      break;
+
+    case ADC_C:
+      cpu_execute_adc_r(state, state->c);
+      break;
+
+    case ADC_D:
+      cpu_execute_adc_r(state, state->d);
+      break;
+
+    case ADC_E:
+      cpu_execute_adc_r(state, state->e);
+      break;
+
+    case ADC_H:
+      cpu_execute_adc_r(state, state->h);
+      break;
+
+    case ADC_L:
+      cpu_execute_adc_r(state, state->l);
+      break;
+
+    case ADC_M:
+      cpu_execute_adc_m(state);
+      break;
+
+    case ADC_A:
+      cpu_execute_adc_r(state, state->a);
+      break;
+
+    case SUB_B:
+      cpu_execute_sub_r(state, state->b);
+      break;
+
+    case SUB_C:
+      cpu_execute_sub_r(state, state->c);
+      break;
+
+    case SUB_D:
+      cpu_execute_sub_r(state, state->d);
+      break;
+
+    case SUB_E:
+      cpu_execute_sub_r(state, state->e);
+      break;
+
+    case SUB_H:
+      cpu_execute_sub_r(state, state->h);
+      break;
+
+    case SUB_L:
+      cpu_execute_sub_r(state, state->l);
+      break;
+
+    case SUB_M:
+      cpu_execute_sub_m(state);
+      break;
+
+    case SUB_A:
+      cpu_execute_sub_r(state, state->a);
+      break;
+
+    case SBB_B:
+      cpu_execute_sbb_r(state, state->b);
+      break;
+
+    case SBB_C:
+      cpu_execute_sbb_r(state, state->c);
+      break;
+
+    case SBB_D:
+      cpu_execute_sbb_r(state, state->d);
+      break;
+
+    case SBB_E:
+      cpu_execute_sbb_r(state, state->e);
+      break;
+
+    case SBB_H:
+      cpu_execute_sbb_r(state, state->h);
+      break;
+
+    case SBB_L:
+      cpu_execute_sbb_r(state, state->l);
+      break;
+
+    case SBB_M:
+      cpu_execute_sbb_m(state);
+      break;
+
+    case SBB_A:
+      cpu_execute_sbb_r(state, state->a);
+      break;
+
+    case ANA_B:
+      cpu_execute_ana_r(state, state->b);
+      break;
+
+    case ANA_C:
+      cpu_execute_ana_r(state, state->c);
+      break;
+
+    case ANA_D:
+      cpu_execute_ana_r(state, state->d);
+      break;
+
+    case ANA_E:
+      cpu_execute_ana_r(state, state->e);
+      break;
+
+    case ANA_H:
+      cpu_execute_ana_r(state, state->h);
+      break;
+
+    case ANA_L:
+      cpu_execute_ana_r(state, state->l);
+      break;
+
+    case ANA_M:
+      cpu_execute_ana_m(state);
+      break;
+
+    case ANA_A:
+      cpu_execute_ana_r(state, state->a);
+      break;
+
+    case XRA_B:
+      cpu_execute_xra_r(state, state->b);
+      break;
+
+    case XRA_C:
+      cpu_execute_xra_r(state, state->c);
+      break;
+
+    case XRA_D:
+      cpu_execute_xra_r(state, state->d);
+      break;
+
+    case XRA_E:
+      cpu_execute_xra_r(state, state->e);
+      break;
+
+    case XRA_H:
+      cpu_execute_xra_r(state, state->h);
+      break;
+
+    case XRA_L:
+      cpu_execute_xra_r(state, state->l);
+      break;
+
+    case XRA_M:
+      cpu_execute_xra_m(state);
+      break;
+
+    case XRA_A:
+      cpu_execute_xra_r(state, state->a);
+      break;
+
+    case ORA_B:
+      cpu_execute_ora_r(state, state->b);
+      break;
+
+    case ORA_C:
+      cpu_execute_ora_r(state, state->c);
+      break;
+
+    case ORA_D:
+      cpu_execute_ora_r(state, state->d);
+      break;
+
+    case ORA_E:
+      cpu_execute_ora_r(state, state->e);
+      break;
+
+    case ORA_H:
+      cpu_execute_ora_r(state, state->h);
+      break;
+
+    case ORA_L:
+      cpu_execute_ora_r(state, state->l);
+      break;
+
+    case ORA_M:
+      cpu_execute_ora_m(state);
+      break;
+
+    case ORA_A:
+      cpu_execute_ora_r(state, state->a);
+      break;
+
+    case CMA_B:
+      cpu_execute_cma_r(state, state->b);
+      break;
+
+    case CMA_C:
+      cpu_execute_cma_r(state, state->c);
+      break;
+
+    case CMA_D:
+      cpu_execute_cma_r(state, state->d);
+      break;
+
+    case CMA_E:
+      cpu_execute_cma_r(state, state->e);
+      break;
+
+    case CMA_H:
+      cpu_execute_cma_r(state, state->h);
+      break;
+
+    case CMA_L:
+      cpu_execute_cma_r(state, state->l);
+      break;
+
+    case CMA_M:
+      cpu_execute_cma_m(state);
+      break;
+
+    case CMA_A:
+      cpu_execute_ora_r(state, state->a);
+      break;
+
     default:
       printf("UNIMPLEMENTED INSTRUCTION: 0x%02x", op_code);
       exit(1);
@@ -775,4 +1039,106 @@ void cpu_execute_mov_r_m(cpu_state *state, uint8_t *src_register) {
 void cpu_execute_mov_m_r(cpu_state *state, uint8_t *src_register) {
   uint16_t address = cpu_compose(state->h, state->l);
   state->memory[address] = *src_register;
+}
+
+void cpu_execute_add_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a + target_register;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_add_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a + state->memory[address];
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_adc_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a + target_register + state->flags.c;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_adc_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a + state->memory[address] + state->flags.c;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_sub_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a - target_register;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_sub_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a - state->memory[address];
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_sbb_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a - target_register - state->flags.c;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_sbb_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a - state->memory[address] - state->flags.c;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_ana_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a & target_register;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_ana_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a & state->memory[address];
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_xra_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a ^target_register;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_xra_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a ^state->memory[address];
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_ora_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a | target_register;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_ora_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a | state->memory[address];
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_cma_r(cpu_state *state, uint8_t target_register) {
+  uint16_t res = state->a - target_register;
+  cpu_handle_all_flags(state, res);
+}
+
+void cpu_execute_cma_m(cpu_state *state) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  uint16_t res = state->a - state->memory[address];
+  cpu_handle_all_flags(state, res);
 }
