@@ -43,7 +43,7 @@ void cpu_handle_ac_flag(cpu_state *state, uint16_t res) {
 cpu_state cpu_init(char *file_data, uint32_t file_size) {
   cpu_state state;
 
-  state.a = 1;
+  state.a = 0;
   state.b = 0;
   state.c = 0;
   state.d = 0;
@@ -358,6 +358,258 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       cpu_execute_cmc(state);
       break;
 
+    case MOV_B_B:
+      cpu_execute_mov_r_r(state, &state->b, &state->b);
+      break;
+
+    case MOV_B_C:
+      cpu_execute_mov_r_r(state, &state->b, &state->c);
+      break;
+
+    case MOV_B_D:
+      cpu_execute_mov_r_r(state, &state->b, &state->d);
+      break;
+
+    case MOV_B_E:
+      cpu_execute_mov_r_r(state, &state->b, &state->e);
+      break;
+
+    case MOV_B_H:
+      cpu_execute_mov_r_r(state, &state->b, &state->h);
+      break;
+
+    case MOV_B_L:
+      cpu_execute_mov_r_r(state, &state->b, &state->l);
+      break;
+
+    case MOV_B_M:
+      cpu_execute_mov_r_m(state, &state->b);
+      break;
+
+    case MOV_B_A:
+      cpu_execute_mov_r_r(state, &state->b, &state->a);
+      break;
+
+    case MOV_C_B:
+      cpu_execute_mov_r_r(state, &state->c, &state->b);
+      break;
+
+    case MOV_C_C:
+      cpu_execute_mov_r_r(state, &state->c, &state->c);
+      break;
+
+    case MOV_C_D:
+      cpu_execute_mov_r_r(state, &state->c, &state->d);
+      break;
+
+    case MOV_C_E:
+      cpu_execute_mov_r_r(state, &state->c, &state->e);
+      break;
+
+    case MOV_C_H:
+      cpu_execute_mov_r_r(state, &state->c, &state->h);
+      break;
+
+    case MOV_C_L:
+      cpu_execute_mov_r_r(state, &state->c, &state->l);
+      break;
+
+    case MOV_C_M:
+      cpu_execute_mov_r_m(state, &state->c);
+      break;
+
+    case MOV_C_A:
+      cpu_execute_mov_r_r(state, &state->c, &state->a);
+      break;
+
+    case MOV_D_B:
+      cpu_execute_mov_r_r(state, &state->d, &state->b);
+      break;
+
+    case MOV_D_C:
+      cpu_execute_mov_r_r(state, &state->d, &state->c);
+      break;
+
+    case MOV_D_D:
+      cpu_execute_mov_r_r(state, &state->d, &state->d);
+      break;
+
+    case MOV_D_E:
+      cpu_execute_mov_r_r(state, &state->d, &state->e);
+      break;
+
+    case MOV_D_H:
+      cpu_execute_mov_r_r(state, &state->d, &state->h);
+      break;
+
+    case MOV_D_L:
+      cpu_execute_mov_r_r(state, &state->d, &state->l);
+      break;
+
+    case MOV_D_M:
+      cpu_execute_mov_r_m(state, &state->d);
+      break;
+
+    case MOV_D_A:
+      cpu_execute_mov_r_r(state, &state->e, &state->a);
+      break;
+
+    case MOV_E_B:
+      cpu_execute_mov_r_r(state, &state->e, &state->b);
+      break;
+
+    case MOV_E_C:
+      cpu_execute_mov_r_r(state, &state->e, &state->c);
+      break;
+
+    case MOV_E_D:
+      cpu_execute_mov_r_r(state, &state->e, &state->d);
+      break;
+
+    case MOV_E_E:
+      cpu_execute_mov_r_r(state, &state->e, &state->e);
+      break;
+
+    case MOV_E_H:
+      cpu_execute_mov_r_r(state, &state->e, &state->h);
+      break;
+
+    case MOV_E_L:
+      cpu_execute_mov_r_r(state, &state->e, &state->l);
+      break;
+
+    case MOV_E_M:
+      cpu_execute_mov_r_m(state, &state->e);
+      break;
+
+    case MOV_E_A:
+      cpu_execute_mov_r_r(state, &state->e, &state->a);
+      break;
+
+    case MOV_H_B:
+      cpu_execute_mov_r_r(state, &state->h, &state->b);
+      break;
+
+    case MOV_H_C:
+      cpu_execute_mov_r_r(state, &state->h, &state->c);
+      break;
+
+    case MOV_H_D:
+      cpu_execute_mov_r_r(state, &state->h, &state->d);
+      break;
+
+    case MOV_H_E:
+      cpu_execute_mov_r_r(state, &state->h, &state->e);
+      break;
+
+    case MOV_H_H:
+      cpu_execute_mov_r_r(state, &state->h, &state->h);
+      break;
+
+    case MOV_H_L:
+      cpu_execute_mov_r_r(state, &state->h, &state->l);
+      break;
+
+    case MOV_H_M:
+      cpu_execute_mov_r_m(state, &state->h);
+      break;
+
+    case MOV_H_A:
+      cpu_execute_mov_r_r(state, &state->h, &state->a);
+      break;
+
+    case MOV_L_B:
+      cpu_execute_mov_r_r(state, &state->l, &state->b);
+      break;
+
+    case MOV_L_C:
+      cpu_execute_mov_r_r(state, &state->l, &state->c);
+      break;
+
+    case MOV_L_D:
+      cpu_execute_mov_r_r(state, &state->l, &state->d);
+      break;
+
+    case MOV_L_E:
+      cpu_execute_mov_r_r(state, &state->l, &state->e);
+      break;
+
+    case MOV_L_H:
+      cpu_execute_mov_r_r(state, &state->l, &state->h);
+      break;
+
+    case MOV_L_L:
+      cpu_execute_mov_r_r(state, &state->l, &state->l);
+      break;
+
+    case MOV_L_M:
+      cpu_execute_mov_r_m(state, &state->l);
+      break;
+
+    case MOV_L_A:
+      cpu_execute_mov_r_r(state, &state->l, &state->a);
+      break;
+
+    case MOV_M_B:
+      cpu_execute_mov_m_r(state, &state->b);
+      break;
+
+    case MOV_M_C:
+      cpu_execute_mov_m_r(state, &state->c);
+      break;
+
+    case MOV_M_D:
+      cpu_execute_mov_m_r(state, &state->d);
+      break;
+
+    case MOV_M_E:
+      cpu_execute_mov_m_r(state, &state->e);
+      break;
+
+    case MOV_M_H:
+      cpu_execute_mov_m_r(state, &state->h);
+      break;
+
+    case MOV_M_L:
+      cpu_execute_mov_m_r(state, &state->l);
+      break;
+
+    case MOV_M_A:
+      cpu_execute_mov_m_r(state, &state->a);
+      break;
+
+    case MOV_A_B:
+      cpu_execute_mov_r_r(state, &state->a, &state->b);
+      break;
+
+    case MOV_A_C:
+      cpu_execute_mov_r_r(state, &state->a, &state->c);
+      break;
+
+    case MOV_A_D:
+      cpu_execute_mov_r_r(state, &state->a, &state->d);
+      break;
+
+    case MOV_A_E:
+      cpu_execute_mov_r_r(state, &state->a, &state->e);
+      break;
+
+    case MOV_A_H:
+      cpu_execute_mov_r_r(state, &state->a, &state->h);
+      break;
+
+    case MOV_A_L:
+      cpu_execute_mov_r_r(state, &state->a, &state->l);
+      break;
+
+    case MOV_A_M:
+      cpu_execute_mov_r_m(state, &state->a);
+      break;
+
+    case MOV_A_A:
+      cpu_execute_mov_r_r(state, &state->a, &state->a);
+      break;
+
     default:
       printf("UNIMPLEMENTED INSTRUCTION: 0x%02x", op_code);
       exit(1);
@@ -509,4 +761,18 @@ void cpu_execute_lda(cpu_state *state) {
 
 void cpu_execute_cmc(cpu_state *state) {
   state->flags.c = !state->flags.c;
+}
+
+void cpu_execute_mov_r_r(cpu_state *state, uint8_t *src_register, uint8_t *dest_register) {
+  *src_register = *dest_register;
+}
+
+void cpu_execute_mov_r_m(cpu_state *state, uint8_t *src_register) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  *src_register = state->memory[address];
+}
+
+void cpu_execute_mov_m_r(cpu_state *state, uint8_t *src_register) {
+  uint16_t address = cpu_compose(state->h, state->l);
+  state->memory[address] = *src_register;
 }

@@ -77,3 +77,6 @@ void cpu_execute_mvi_m(cpu_state *state);
 void cpu_execute_stc(cpu_state* state);
 void cpu_execute_lda(cpu_state* state);
 void cpu_execute_cmc(cpu_state* state);
+void cpu_execute_mov_r_r(cpu_state* state, uint8_t* src_register, uint8_t* dest_register);
+void cpu_execute_mov_r_m(cpu_state* state, uint8_t* src_register);
+void cpu_execute_mov_m_r(cpu_state* state, uint8_t* src_register);
