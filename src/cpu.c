@@ -874,6 +874,158 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       cpu_execute_ora_r(state, state->a);
       break;
 
+    case RNZ:
+      cpu_execute_ret(state, !state->flags.z);
+      break;
+      // POP_B
+    case JNZ:
+      cpu_execute_jmp(state, !state->flags.z);
+      break;
+
+    case JMP:
+      cpu_execute_jmp(state, 1);
+      break;
+
+    case CNZ:
+      cpu_execute_call(state, !state->flags.z);
+      break;
+      // PUSH_B
+      // ADI_D8
+    case RST_0:
+      cpu_execute_rst(state, 0x00);
+      break;
+
+    case RZ:
+      cpu_execute_ret(state, state->flags.z);
+      break;
+
+    case RET:
+      cpu_execute_ret(state, 1);
+      break;
+
+    case JZ:
+      cpu_execute_jmp(state, state->flags.z);
+      break;
+
+    case CZ:
+      cpu_execute_call(state, state->flags.z);
+      break;
+
+    case CALL:
+      cpu_execute_call(state, 1);
+      break;
+      // ACI_D8
+    case RST_1:
+      cpu_execute_rst(state, 0x08);
+      break;
+
+    case RNC:
+      cpu_execute_ret(state, !state->flags.c);
+      break;
+      // POP_D
+    case JNC:
+      cpu_execute_jmp(state, !state->flags.c);
+      break;
+      // OUT
+    case CNC:
+      cpu_execute_call(state, !state->flags.c);
+      break;
+      // PUSH_D
+      // SUI_D8
+    case RST_2:
+      cpu_execute_rst(state, 0x10);
+      break;
+
+    case RC:
+      cpu_execute_ret(state, state->flags.c);
+      break;
+
+    case JC:
+      cpu_execute_jmp(state, state->flags.c);
+      break;
+      // IN
+    case CC:
+      cpu_execute_call(state, state->flags.z);
+      break;
+      // SBI_D8
+    case RST_3:
+      cpu_execute_rst(state, 0x18);
+      break;
+
+    case RPO:
+      cpu_execute_ret(state, !state->flags.p);
+      break;
+      // POP_H
+    case JPO:
+      cpu_execute_jmp(state, !state->flags.p);
+      break;
+      // XTHL
+    case CPO:
+      cpu_execute_call(state, !state->flags.p);
+      break;
+      // PUSH_H
+      // ANI_D8
+    case RST_4:
+      cpu_execute_rst(state, 0x20);
+      break;
+
+    case RPE:
+      cpu_execute_ret(state, state->flags.p);
+      break;
+      // PCHL
+    case JPE:
+      cpu_execute_jmp(state, state->flags.p);
+      break;
+      // XCHG
+    case CPE:
+      cpu_execute_call(state, state->flags.p);
+      break;
+      // XRI_D8
+    case RST_5:
+      cpu_execute_rst(state, 0x28);
+      break;
+
+    case RP:
+      cpu_execute_ret(state, !state->flags.s);
+      break;
+      // POP_PSW
+    case JP:
+      cpu_execute_jmp(state, !state->flags.s);
+      break;
+
+    case DI:
+      cpu_execute_di(state);
+      break;
+
+    case CP:
+      cpu_execute_call(state, !state->flags.s);
+      break;
+      // PUSH_PSW
+      // ORI_D8
+    case RST_6:
+      cpu_execute_rst(state, 0x30);
+      break;
+
+    case RM:
+      cpu_execute_ret(state, state->flags.s);
+      break;
+      // SPHL
+    case JM:
+      cpu_execute_jmp(state, state->flags.s);
+      break;
+
+    case EI:
+      cpu_execute_ei(state);
+      break;
+
+    case CM:
+      cpu_execute_call(state, state->flags.s);
+      break;
+      // CPI_D8
+    case RST_7:
+      cpu_execute_rst(state, 0x38);
+      break;
+
     default:
       printf("UNIMPLEMENTED INSTRUCTION: 0x%02x", op_code);
       exit(1);
@@ -1141,4 +1293,51 @@ void cpu_execute_cma_m(cpu_state *state) {
   uint16_t address = cpu_compose(state->h, state->l);
   uint16_t res = state->a - state->memory[address];
   cpu_handle_all_flags(state, res);
+}
+
+void cpu_execute_jmp(cpu_state *state, uint8_t condition) {
+  uint16_t address = cpu_fetch_address(state);
+
+  if (condition) {
+    state->pc = address;
+  }
+}
+
+void cpu_execute_ei(cpu_state *state) {
+  state->interrupt_enable = 1;
+}
+
+void cpu_execute_di(cpu_state *state) {
+  state->interrupt_enable = 0;
+}
+
+void cpu_execute_call(cpu_state *state, uint8_t condition) {
+  uint16_t address = cpu_fetch_address(state);
+  uint8_t high_byte, low_byte;
+  cpu_split(state->pc, &high_byte, &low_byte);
+
+  if (condition) {
+    state->memory[state->sp - 1] = high_byte;
+    state->memory[state->sp - 2] = low_byte;
+    state->sp -= 2;
+    state->pc = address;
+  }
+}
+
+void cpu_execute_ret(cpu_state *state, uint8_t condition) {
+  if (condition) {
+    uint16_t address = cpu_compose(state->memory[state->sp + 1], state->memory[state->sp]);
+    state->sp += 2;
+    state->pc = address;
+  }
+}
+
+void cpu_execute_rst(cpu_state *state, uint8_t address) {
+  uint8_t high_byte, low_byte;
+  cpu_split(state->pc, &high_byte, &low_byte);
+
+  state->memory[state->sp - 1] = high_byte;
+  state->memory[state->sp - 2] = low_byte;
+  state->sp -= 2;
+  state->pc = address;
 }
