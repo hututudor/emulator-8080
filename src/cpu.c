@@ -13,6 +13,26 @@ void cpu_split(uint16_t byte, uint8_t *high_byte, uint8_t *low_byte) {
   *low_byte = byte & 0x00FF;
 }
 
+uint8_t cpu_get_psw(cpu_state *state) {
+  uint8_t res = 0;
+  res += state->flags.s << 7;
+  res += state->flags.z << 6;
+  res += state->flags.ac << 4;
+  res += state->flags.p << 2;
+  res += 1 << 1;
+  res += state->flags.c;
+
+  return res;
+}
+
+void cpu_set_psw(cpu_state *state, uint8_t psw) {
+  state->flags.s = psw >> 7 & 0x1;
+  state->flags.z = psw >> 6 & 0x1;
+  state->flags.ac = psw >> 4 & 0x1;
+  state->flags.p = psw >> 2 & 0x1;
+  state->flags.c = psw & 0x1;
+}
+
 void cpu_handle_z_flag(cpu_state *state, uint16_t res) {
   state->flags.z = (res & 0xFF) == 0x00;
 }
@@ -90,6 +110,12 @@ void cpu_print_debug_info(cpu_state *state) {
          state->flags.c, state->flags.ac);
 }
 
+void cpu_print_dump(cpu_state *state) {
+  FILE *dump = fopen("../dump", "wb");
+  fwrite(state->memory, 1, 16 * 16 * 16 * 16, dump);
+  fclose(dump);
+}
+
 void cpu_print_disassembled_op_code(cpu_state *state, uint8_t op_code) {
   if (disassemble_byte_length[op_code] == 3) {
     printf(disassemble_table[op_code], *(state->memory + state->pc + 1), *(state->memory + state->pc));
@@ -123,7 +149,11 @@ void cpu_start_emulation(cpu_state *state) {
     cpu_emulate_op_code(state, op_code);
     cpu_print_debug_info(state);
 
-//    getchar();
+//    char c = getchar();
+//    if (c == 'd') {
+//      cpu_print_dump(state);
+//    }
+
     printf("\n");
   }
 }
@@ -842,42 +872,46 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       cpu_execute_ora_r(state, state->a);
       break;
 
-    case CMA_B:
-      cpu_execute_cma_r(state, state->b);
+    case CMP_B:
+      cpu_execute_cmp_r(state, state->b);
       break;
 
-    case CMA_C:
-      cpu_execute_cma_r(state, state->c);
+    case CMP_C:
+      cpu_execute_cmp_r(state, state->c);
       break;
 
-    case CMA_D:
-      cpu_execute_cma_r(state, state->d);
+    case CMP_D:
+      cpu_execute_cmp_r(state, state->d);
       break;
 
-    case CMA_E:
-      cpu_execute_cma_r(state, state->e);
+    case CMP_E:
+      cpu_execute_cmp_r(state, state->e);
       break;
 
-    case CMA_H:
-      cpu_execute_cma_r(state, state->h);
+    case CMP_H:
+      cpu_execute_cmp_r(state, state->h);
       break;
 
-    case CMA_L:
-      cpu_execute_cma_r(state, state->l);
+    case CMP_L:
+      cpu_execute_cmp_r(state, state->l);
       break;
 
-    case CMA_M:
-      cpu_execute_cma_m(state);
+    case CMP_M:
+      cpu_execute_cmp_m(state);
       break;
 
-    case CMA_A:
+    case CMP_A:
       cpu_execute_ora_r(state, state->a);
       break;
 
     case RNZ:
       cpu_execute_ret(state, !state->flags.z);
       break;
-      // POP_B
+
+    case POP_B:
+      cpu_execute_pop(state, &state->b, &state->c);
+      break;
+
     case JNZ:
       cpu_execute_jmp(state, !state->flags.z);
       break;
@@ -889,8 +923,15 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case CNZ:
       cpu_execute_call(state, !state->flags.z);
       break;
-      // PUSH_B
-      // ADI_D8
+
+    case PUSH_B:
+      cpu_execute_push(state, state->b, state->c);
+      break;
+
+    case ADI_D8:
+      cpu_execute_adi(state);
+      break;
+
     case RST_0:
       cpu_execute_rst(state, 0x00);
       break;
@@ -914,7 +955,11 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case CALL:
       cpu_execute_call(state, 1);
       break;
-      // ACI_D8
+
+    case ACI_D8:
+      cpu_execute_aci(state);
+      break;
+
     case RST_1:
       cpu_execute_rst(state, 0x08);
       break;
@@ -922,7 +967,11 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case RNC:
       cpu_execute_ret(state, !state->flags.c);
       break;
-      // POP_D
+
+    case POP_D:
+      cpu_execute_pop(state, &state->d, &state->e);
+      break;
+
     case JNC:
       cpu_execute_jmp(state, !state->flags.c);
       break;
@@ -930,8 +979,15 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case CNC:
       cpu_execute_call(state, !state->flags.c);
       break;
-      // PUSH_D
-      // SUI_D8
+
+    case PUSH_D:
+      cpu_execute_push(state, state->d, state->e);
+      break;
+
+    case SUI_D8:
+      cpu_execute_sui(state);
+      break;
+
     case RST_2:
       cpu_execute_rst(state, 0x10);
       break;
@@ -947,7 +1003,11 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case CC:
       cpu_execute_call(state, state->flags.z);
       break;
-      // SBI_D8
+
+    case SBI_D8:
+      cpu_execute_sbi(state);
+      break;
+
     case RST_3:
       cpu_execute_rst(state, 0x18);
       break;
@@ -955,16 +1015,31 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case RPO:
       cpu_execute_ret(state, !state->flags.p);
       break;
-      // POP_H
+
+    case POP_H:
+      cpu_execute_pop(state, &state->h, &state->l);
+      break;
+
     case JPO:
       cpu_execute_jmp(state, !state->flags.p);
       break;
-      // XTHL
+
+    case XTHL:
+      cpu_execute_xthl(state);
+      break;
+
     case CPO:
       cpu_execute_call(state, !state->flags.p);
       break;
-      // PUSH_H
-      // ANI_D8
+
+    case PUSH_H:
+      cpu_execute_push(state, state->h, state->l);
+      break;
+
+    case ANI_D8:
+      cpu_execute_ani(state);
+      break;
+
     case RST_4:
       cpu_execute_rst(state, 0x20);
       break;
@@ -972,15 +1047,27 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case RPE:
       cpu_execute_ret(state, state->flags.p);
       break;
-      // PCHL
+
+    case PCHL:
+      cpu_execute_pchl(state);
+      break;
+
     case JPE:
       cpu_execute_jmp(state, state->flags.p);
       break;
-      // XCHG
+
+    case XCHG:
+      cpu_execute_xchg(state);
+      break;
+
     case CPE:
       cpu_execute_call(state, state->flags.p);
       break;
-      // XRI_D8
+
+    case XRI_D8:
+      cpu_execute_xri(state);
+      break;
+
     case RST_5:
       cpu_execute_rst(state, 0x28);
       break;
@@ -988,7 +1075,13 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case RP:
       cpu_execute_ret(state, !state->flags.s);
       break;
-      // POP_PSW
+
+    case POP_PSW:
+      uint8_t psw = 0;
+      cpu_execute_pop(state, &state->a, &psw);
+      cpu_set_psw(state, psw);
+      break;
+
     case JP:
       cpu_execute_jmp(state, !state->flags.s);
       break;
@@ -1000,8 +1093,15 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case CP:
       cpu_execute_call(state, !state->flags.s);
       break;
-      // PUSH_PSW
-      // ORI_D8
+
+    case PUSH_PSW:
+      cpu_execute_push(state, state->a, cpu_get_psw(state));
+      break;
+
+    case ORI_D8:
+      cpu_execute_ori(state);
+      break;
+
     case RST_6:
       cpu_execute_rst(state, 0x30);
       break;
@@ -1009,7 +1109,11 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case RM:
       cpu_execute_ret(state, state->flags.s);
       break;
-      // SPHL
+
+    case SPHL:
+      cpu_execute_sphl(state);
+      break;
+
     case JM:
       cpu_execute_jmp(state, state->flags.s);
       break;
@@ -1021,9 +1125,16 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case CM:
       cpu_execute_call(state, state->flags.s);
       break;
-      // CPI_D8
+
+    case CPI_D8:
+      cpu_execute_cpi(state);
+      break;
+
     case RST_7:
       cpu_execute_rst(state, 0x38);
+      break;
+
+    case OUT:
       break;
 
     default:
@@ -1284,12 +1395,12 @@ void cpu_execute_ora_m(cpu_state *state) {
   state->a = res & 0xFF;
 }
 
-void cpu_execute_cma_r(cpu_state *state, uint8_t target_register) {
+void cpu_execute_cmp_r(cpu_state *state, uint8_t target_register) {
   uint16_t res = state->a - target_register;
   cpu_handle_all_flags(state, res);
 }
 
-void cpu_execute_cma_m(cpu_state *state) {
+void cpu_execute_cmp_m(cpu_state *state) {
   uint16_t address = cpu_compose(state->h, state->l);
   uint16_t res = state->a - state->memory[address];
   cpu_handle_all_flags(state, res);
@@ -1340,4 +1451,93 @@ void cpu_execute_rst(cpu_state *state, uint8_t address) {
   state->memory[state->sp - 2] = low_byte;
   state->sp -= 2;
   state->pc = address;
+}
+
+void cpu_execute_push(cpu_state *state, uint8_t high_register, uint8_t low_register) {
+  state->memory[state->sp - 1] = high_register;
+  state->memory[state->sp - 2] = low_register;
+  state->sp -= 2;
+}
+
+void cpu_execute_pop(cpu_state *state, uint8_t *high_register, uint8_t *low_register) {
+  *high_register = state->memory[state->sp + 1];
+  *low_register = state->memory[state->sp];
+  state->sp += 2;
+}
+
+void cpu_execute_pchl(cpu_state *state) {
+  state->pc = cpu_compose(state->h, state->l);
+}
+
+void cpu_execute_sphl(cpu_state *state) {
+  state->sp = cpu_compose(state->h, state->l);
+}
+
+void cpu_execute_xthl(cpu_state *state) {
+  uint8_t temp;
+  temp = state->memory[state->sp + 1];
+  state->memory[state->sp + 1] = state->h;
+  state->h = temp;
+
+  temp = state->memory[state->sp];
+  state->memory[state->sp] = state->l;
+  state->l = temp;
+}
+
+void cpu_execute_xchg(cpu_state *state) {
+  uint8_t temp;
+  temp = state->d;
+  state->d = state->h;
+  state->h = temp;
+
+  temp = state->e;
+  state->e = state->l;
+  state->l = temp;
+}
+
+void cpu_execute_adi(cpu_state *state) {
+  uint16_t res = state->a + cpu_fetch(state);
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_aci(cpu_state *state) {
+  uint16_t res = state->a + cpu_fetch(state) + state->flags.c;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_sui(cpu_state *state) {
+  uint16_t res = state->a - cpu_fetch(state);
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_sbi(cpu_state *state) {
+  uint16_t res = state->a - cpu_fetch(state) - state->flags.c;
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_ani(cpu_state *state) {
+  uint16_t res = state->a & cpu_fetch(state);
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_xri(cpu_state *state) {
+  uint16_t res = state->a ^cpu_fetch(state);
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_ori(cpu_state *state) {
+  uint16_t res = state->a | cpu_fetch(state);
+  cpu_handle_all_flags(state, res);
+  state->a = res & 0xFF;
+}
+
+void cpu_execute_cpi(cpu_state *state) {
+  uint16_t res = state->a - cpu_fetch(state);
+  cpu_handle_all_flags(state, res);
 }

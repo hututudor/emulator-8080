@@ -1,7 +1,7 @@
 #include "cpu.h"
 #include <stdio.h>
 
-char *file_to_open = "../roms/test.rom";
+char *file_to_open = "../roms/invaders.rom";
 
 int main() {
   char *file_buffer;
@@ -31,11 +31,7 @@ int main() {
   free(file_buffer);
 
   cpu_start_emulation(&state);
-
-  FILE *dump = fopen("../dump", "wb");
-  fwrite(state.memory, 1, 16 * 16 * 16 * 16, file);
-  fclose(file);
-
+  cpu_print_dump(&state);
   cpu_destroy(&state);
 
   return 0;
