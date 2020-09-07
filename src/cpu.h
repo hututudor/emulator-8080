@@ -24,14 +24,18 @@ typedef struct {
   uint8_t h;
   uint8_t l;
 
-  uint32_t pc;
-  uint32_t sp;
+  uint16_t pc;
+  uint16_t sp;
 
   uint8_t interrupt_enable;
 
   cpu_flags flags;
   uint8_t *memory;
+
+  uint8_t interrupt;
 } cpu_state;
+
+extern uint8_t is_running;
 
 uint16_t cpu_compose(uint8_t high_byte, uint8_t low_byte);
 void cpu_split(uint16_t byte, uint8_t *high_byte, uint8_t *low_byte);
@@ -54,6 +58,8 @@ void cpu_print_disassembled_op_code(cpu_state *state, uint8_t op_code);
 
 uint8_t cpu_fetch(cpu_state *state);
 uint16_t cpu_fetch_address(cpu_state *state);
+
+void cpu_set_interrupt(cpu_state* state, uint8_t op_code);
 
 void cpu_start_emulation(cpu_state *state);
 void cpu_emulate_op_code(cpu_state *state, uint8_t op_code);
@@ -120,3 +126,4 @@ void cpu_execute_ani(cpu_state *state);
 void cpu_execute_xri(cpu_state *state);
 void cpu_execute_ori(cpu_state *state);
 void cpu_execute_cpi(cpu_state *state);
+void cpu_execute_daa(cpu_state *state);

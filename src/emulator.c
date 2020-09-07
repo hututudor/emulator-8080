@@ -1,7 +1,32 @@
 #include "cpu.h"
+#include "display.h"
 #include <stdio.h>
+#include <windows.h>
 
 char *file_to_open = "../roms/invaders.rom";
+uint8_t is_running = 1;
+
+DWORD WINAPI run_emulation(LPVOID param) {
+  cpu_state *state = (cpu_state *) param;
+  cpu_start_emulation(state);
+  cpu_print_dump(state);
+  cpu_destroy(state);
+  return 0;
+}
+
+DWORD WINAPI run_display(LPVOID param) {
+  cpu_state *state = (cpu_state *) param;
+  Sleep(1000);
+  display_init();
+
+  while (is_running) {
+    display_process_events(state);
+    display_render(state);
+  }
+
+  display_destroy();
+  return 0;
+}
 
 int main() {
   char *file_buffer;
@@ -27,12 +52,30 @@ int main() {
     return 1;
   }
 
+  is_running = 1;
+
   cpu_state state = cpu_init(file_buffer, file_size);
   free(file_buffer);
 
-  cpu_start_emulation(&state);
-  cpu_print_dump(&state);
-  cpu_destroy(&state);
+  HANDLE emulation_thread = CreateThread(NULL, 0, run_emulation, &state, 0, 0);
+  HANDLE display_thread = CreateThread(NULL, 0, run_display, &state, 0, 0);
+
+  if (!emulation_thread) {
+    printf("Could not create emulation thread\n");
+    exit(0);
+  }
+
+  if (!display_thread) {
+    printf("Could not create display thread\n");
+    exit(0);
+  }
+
+
+  WaitForSingleObject(emulation_thread, INFINITE);
+  WaitForSingleObject(display_thread, INFINITE);
+
+  CloseHandle(emulation_thread);
+  CloseHandle(display_thread);
 
   return 0;
 }

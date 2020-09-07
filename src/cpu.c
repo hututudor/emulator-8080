@@ -1,4 +1,7 @@
 #include "cpu.h"
+#include "machine.h"
+
+uint32_t debug_step_counter = 0;
 
 uint16_t cpu_compose(uint8_t high_byte, uint8_t low_byte) {
   uint16_t ret = 0;
@@ -44,12 +47,17 @@ void cpu_handle_s_flag(cpu_state *state, uint16_t res) {
 void cpu_handle_p_flag(cpu_state *state, uint16_t res) {
   int32_t parity = 0;
 
+  res = (res & ((1 << 8) - 1));
   for (int i = 0; i < 8; i++) {
-    parity += res & 1;
-    res >>= 1;
+
+    if (res & 0x1) {
+      parity++;
+    }
+
+    res = res >> 1;
   }
 
-  state->flags.p = parity % 2 == 0;
+  state->flags.p = (parity & 0x1) == 0;
 }
 
 void cpu_handle_c_flag(cpu_state *state, uint16_t res) {
@@ -89,6 +97,7 @@ cpu_state cpu_init(char *file_data, uint32_t file_size) {
   state.flags.z = 0;
 
   state.interrupt_enable = 1;
+  state.interrupt = 0;
 
   state.memory = malloc(16 * 16 * 16 * 16);
 
@@ -136,26 +145,55 @@ uint16_t cpu_fetch_address(cpu_state *state) {
   return cpu_compose(high_register, low_register);
 }
 
+void cpu_set_interrupt(cpu_state *state, uint8_t op_code) {
+  if (state->interrupt_enable) {
+    state->interrupt = op_code;
+  }
+}
+
 void cpu_start_emulation(cpu_state *state) {
-  while (1) {
-    uint8_t op_code = cpu_fetch(state);
+  while (is_running) {
+    uint8_t op_code = 0;
+
+    if (state->interrupt) {
+      op_code = state->interrupt;
+      state->interrupt = 0;
+    } else {
+      op_code = cpu_fetch(state);
+    }
 
     if (op_code == HLT) {
       break;
     }
 
-    cpu_print_debug_info(state);
-    cpu_print_disassembled_op_code(state, op_code);
+//    cpu_print_debug_info(state);
+//    cpu_print_disassembled_op_code(state, op_code);
     cpu_emulate_op_code(state, op_code);
-    cpu_print_debug_info(state);
+//    cpu_print_debug_info(state);
 
-//    char c = getchar();
-//    if (c == 'd') {
-//      cpu_print_dump(state);
+//    if (debug_step_counter == 0) {
+//      char c = getchar();
+//      if (c == 'd') {
+//        cpu_print_dump(state);
+//      } else if (c == '1') {
+//        cpu_set_interrupt(state, RST_1);
+//      } else if (c == '2') {
+//        cpu_set_interrupt(state, RST_2);
+//      } else if (c == 's') {
+//        debug_step_counter = 100;
+//      } else if (c == 'm') {
+//        debug_step_counter = 1000;
+//      } else if(c == 'z') {
+//        debug_step_counter = 10000;
+//      }
+//    } else {
+//      debug_step_counter --;
 //    }
-
-    printf("\n");
+//
+//    printf("\n");
   }
+
+  is_running = 0;
 }
 
 void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
@@ -302,7 +340,7 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       break;
 
     case DAA:
-      // TODO: Implement this instruction
+      cpu_execute_daa(state);
       break;
 
     case DAD_H:
@@ -975,7 +1013,7 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case JNC:
       cpu_execute_jmp(state, !state->flags.c);
       break;
-      // OUT
+
     case CNC:
       cpu_execute_call(state, !state->flags.c);
       break;
@@ -999,9 +1037,9 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
     case JC:
       cpu_execute_jmp(state, state->flags.c);
       break;
-      // IN
+
     case CC:
-      cpu_execute_call(state, state->flags.z);
+      cpu_execute_call(state, state->flags.c);
       break;
 
     case SBI_D8:
@@ -1135,6 +1173,11 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       break;
 
     case OUT:
+      machine_out(cpu_fetch(state), state->a);
+      break;
+
+    case IN:
+      machine_in(cpu_fetch(state), &state->a);
       break;
 
     default:
@@ -1541,3 +1584,20 @@ void cpu_execute_cpi(cpu_state *state) {
   uint16_t res = state->a - cpu_fetch(state);
   cpu_handle_all_flags(state, res);
 }
+
+void cpu_execute_daa(cpu_state *state) {
+  uint8_t least_significant_number = state->a << 4 >> 4;
+  if (least_significant_number > 0x09 || state->flags.ac == 1) {
+    uint16_t res = state->a + 0x06;
+    state->a += 0x06;
+    cpu_handle_all_flags(state, res);
+  }
+
+  uint8_t most_significant_number = state->a >> 4;
+  if (most_significant_number > 0x09 || state->flags.c == 1) {
+    uint16_t res = state->a + 0x600;
+    state->a += 0x600;
+    cpu_handle_all_flags(state, res);
+  }
+}
+
