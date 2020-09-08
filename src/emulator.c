@@ -1,5 +1,9 @@
+#define DISPLAY 1
+#define CPU_DEBUG 1
+
 #include "cpu.h"
 #include "display.h"
+#include "machine.h"
 #include <stdio.h>
 #include <windows.h>
 
@@ -15,6 +19,7 @@ DWORD WINAPI run_emulation(LPVOID param) {
 }
 
 DWORD WINAPI run_display(LPVOID param) {
+#if DISPLAY
   cpu_state *state = (cpu_state *) param;
   Sleep(1000);
   display_init();
@@ -25,6 +30,7 @@ DWORD WINAPI run_display(LPVOID param) {
   }
 
   display_destroy();
+#endif
   return 0;
 }
 
@@ -54,6 +60,7 @@ int main() {
 
   is_running = 1;
 
+  machine_init();
   cpu_state state = cpu_init(file_buffer, file_size);
   free(file_buffer);
 

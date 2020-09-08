@@ -166,31 +166,37 @@ void cpu_start_emulation(cpu_state *state) {
       break;
     }
 
-//    cpu_print_debug_info(state);
-//    cpu_print_disassembled_op_code(state, op_code);
-    cpu_emulate_op_code(state, op_code);
-//    cpu_print_debug_info(state);
+#if CPU_DEBUG
+    cpu_print_debug_info(state);
+    cpu_print_disassembled_op_code(state, op_code);
+#endif
 
-//    if (debug_step_counter == 0) {
-//      char c = getchar();
-//      if (c == 'd') {
-//        cpu_print_dump(state);
-//      } else if (c == '1') {
-//        cpu_set_interrupt(state, RST_1);
-//      } else if (c == '2') {
-//        cpu_set_interrupt(state, RST_2);
-//      } else if (c == 's') {
-//        debug_step_counter = 100;
-//      } else if (c == 'm') {
-//        debug_step_counter = 1000;
-//      } else if(c == 'z') {
-//        debug_step_counter = 10000;
-//      }
-//    } else {
-//      debug_step_counter --;
-//    }
-//
-//    printf("\n");
+    cpu_emulate_op_code(state, op_code);
+
+#if CPU_DEBUG
+    cpu_print_debug_info(state);
+
+    if (debug_step_counter == 0) {
+      char c = getchar();
+      if (c == 'd') {
+        cpu_print_dump(state);
+      } else if (c == '1') {
+        cpu_set_interrupt(state, RST_1);
+      } else if (c == '2') {
+        cpu_set_interrupt(state, RST_2);
+      } else if (c == 's') {
+        debug_step_counter = 100;
+      } else if (c == 'm') {
+        debug_step_counter = 1000;
+      } else if(c == 'z') {
+        debug_step_counter = 10000;
+      }
+    } else {
+      debug_step_counter --;
+    }
+
+    printf("\n");
+#endif
   }
 
   is_running = 0;
@@ -1181,6 +1187,8 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       break;
 
     default:
+      cpu_print_debug_info(state);
+      cpu_print_dump(state);
       printf("UNIMPLEMENTED INSTRUCTION: 0x%02x", op_code);
       exit(1);
   }
@@ -1586,17 +1594,13 @@ void cpu_execute_cpi(cpu_state *state) {
 }
 
 void cpu_execute_daa(cpu_state *state) {
-  uint8_t least_significant_number = state->a << 4 >> 4;
-  if (least_significant_number > 0x09 || state->flags.ac == 1) {
-    uint16_t res = state->a + 0x06;
-    state->a += 0x06;
-    cpu_handle_all_flags(state, res);
+  if ((state->a & 0xf) > 0x9) {
+    state->a += 0x6;
   }
 
-  uint8_t most_significant_number = state->a >> 4;
-  if (most_significant_number > 0x09 || state->flags.c == 1) {
-    uint16_t res = state->a + 0x600;
-    state->a += 0x600;
+  if ((state->a & 0xf0) > 0x90) {
+    uint16_t res = (uint16_t) state->a + 0x60;
+    state->a = res & 0xff;
     cpu_handle_all_flags(state, res);
   }
 }

@@ -1,5 +1,5 @@
 #include "display.h"
-#include "cpu.h"
+#include "machine.h"
 #include <SDL.h>
 
 SDL_Window *window = NULL;
@@ -63,10 +63,51 @@ void display_process_events(cpu_state *state) {
     case SDL_QUIT:
       is_running = 0;
       break;
-//    case SDL_KEYDOWN:
-//      if (event.key.keysym.sym == SDLK_ESCAPE)
-//        is_running = false;
-//      break;
+    case SDL_KEYDOWN:
+      if (event.key.keysym.sym == SDLK_c)
+        machine_set_key(KEY_COIN, 1);
+
+      if (event.key.keysym.sym == SDLK_1)
+        machine_set_key(KEY_P1_START, 1);
+      if (event.key.keysym.sym == SDLK_LEFT)
+        machine_set_key(KEY_P1_LEFT, 1);
+      if (event.key.keysym.sym == SDLK_RIGHT)
+        machine_set_key(KEY_P1_RIGHT, 1);
+      if (event.key.keysym.sym == SDLK_SPACE)
+        machine_set_key(KEY_P1_FIRE, 1);
+
+      if (event.key.keysym.sym == SDLK_2)
+        machine_set_key(KEY_P2_START, 1);
+      if (event.key.keysym.sym == SDLK_a)
+        machine_set_key(KEY_P2_LEFT, 1);
+      if (event.key.keysym.sym == SDLK_d)
+        machine_set_key(KEY_P2_RIGHT, 1);
+      if (event.key.keysym.sym == SDLK_w)
+        machine_set_key(KEY_P2_FIRE, 1);
+      break;
+
+    case SDL_KEYUP:
+      if (event.key.keysym.sym == SDLK_c)
+        machine_set_key(KEY_COIN, 0);
+
+      if (event.key.keysym.sym == SDLK_0)
+        machine_set_key(KEY_P1_START, 0);
+      if (event.key.keysym.sym == SDLK_LEFT)
+        machine_set_key(KEY_P1_LEFT, 0);
+      if (event.key.keysym.sym == SDLK_RIGHT)
+        machine_set_key(KEY_P1_RIGHT, 0);
+      if (event.key.keysym.sym == SDLK_SPACE)
+        machine_set_key(KEY_P1_FIRE, 0);
+
+      if (event.key.keysym.sym == SDLK_2)
+        machine_set_key(KEY_P2_START, 0);
+      if (event.key.keysym.sym == SDLK_a)
+        machine_set_key(KEY_P2_LEFT, 0);
+      if (event.key.keysym.sym == SDLK_d)
+        machine_set_key(KEY_P2_RIGHT, 0);
+      if (event.key.keysym.sym == SDLK_w)
+        machine_set_key(KEY_P2_FIRE, 0);
+      break;
   }
 }
 
