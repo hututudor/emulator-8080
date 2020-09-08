@@ -21,7 +21,6 @@ DWORD WINAPI run_emulation(LPVOID param) {
 DWORD WINAPI run_display(LPVOID param) {
 #if DISPLAY
   cpu_state *state = (cpu_state *) param;
-  Sleep(1000);
   display_init();
 
   while (is_running) {

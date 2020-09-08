@@ -96,7 +96,7 @@ cpu_state cpu_init(char *file_data, uint32_t file_size) {
   state.flags.s = 0;
   state.flags.z = 0;
 
-  state.interrupt_enable = 1;
+  state.interrupt_enable = 0;
   state.interrupt = 0;
 
   state.memory = malloc(16 * 16 * 16 * 16);
