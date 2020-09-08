@@ -533,7 +533,7 @@ void cpu_emulate_op_code(cpu_state *state, uint8_t op_code) {
       break;
 
     case MOV_D_A:
-      cpu_execute_mov_r_r(state, &state->e, &state->a);
+      cpu_execute_mov_r_r(state, &state->d, &state->a);
       break;
 
     case MOV_E_B:
@@ -1266,8 +1266,9 @@ void cpu_execute_dcx(uint8_t *high_register, uint8_t *low_register) {
 }
 
 void cpu_execute_rrc(cpu_state *state) {
-  state->a = state->a >> 1 | state->a << 7;
-  state->flags.c = state->a >> 7 != 0;
+  uint8_t temp = state->a;
+  state->a = temp >> 1 | temp << 7;
+  state->flags.c = ((state->a >> 7) > 0);
 }
 
 void cpu_execute_ral(cpu_state *state) {
