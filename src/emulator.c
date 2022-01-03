@@ -1,26 +1,27 @@
 #define DISPLAY 1
 #define CPU_DEBUG 1
 
+#include <SDL.h>
+#include <stdio.h>
+
 #include "cpu.h"
 #include "display.h"
 #include "machine.h"
-#include <stdio.h>
-#include <windows.h>
 
 char *file_to_open = "../roms/invaders.rom";
 uint8_t is_running = 1;
 
-DWORD WINAPI run_emulation(LPVOID param) {
-  cpu_state *state = (cpu_state *) param;
+int run_emulation(void *param) {
+  cpu_state *state = (cpu_state *)param;
   cpu_start_emulation(state);
   cpu_print_dump(state);
   cpu_destroy(state);
   return 0;
 }
 
-DWORD WINAPI run_display(LPVOID param) {
+int run_display(void *param) {
 #if DISPLAY
-  cpu_state *state = (cpu_state *) param;
+  cpu_state *state = (cpu_state *)param;
   display_init();
 
   while (is_running) {
@@ -63,8 +64,9 @@ int main() {
   cpu_state state = cpu_init(file_buffer, file_size);
   free(file_buffer);
 
-  HANDLE emulation_thread = CreateThread(NULL, 0, run_emulation, &state, 0, 0);
-  HANDLE display_thread = CreateThread(NULL, 0, run_display, &state, 0, 0);
+  SDL_Thread *emulation_thread =
+      SDL_CreateThread(run_emulation, "emulation", &state);
+  SDL_Thread *display_thread = SDL_CreateThread(run_display, "display", &state);
 
   if (!emulation_thread) {
     printf("Could not create emulation thread\n");
@@ -76,12 +78,8 @@ int main() {
     exit(0);
   }
 
-
-  WaitForSingleObject(emulation_thread, INFINITE);
-  WaitForSingleObject(display_thread, INFINITE);
-
-  CloseHandle(emulation_thread);
-  CloseHandle(display_thread);
+  SDL_WaitThread(emulation_thread, NULL);
+  SDL_WaitThread(display_thread, NULL);
 
   return 0;
 }
